@@ -5,12 +5,6 @@ require_relative 'config'
 module RubyREPL
   class Engine
 
-    include Shikashi
-
-    @s = Sandbox.new
-    @priv = Privileges.new
-    @priv.allow_method :print
-
     def initialize
       user_config = RubyREPL::Configuration.config
       config_strings = ["consumer_key", 
@@ -29,7 +23,10 @@ module RubyREPL
 
     def evaluate_tweet(tweet)
       begin
-        eval_output = eval tweet.text.split(' ')[1..-1].join(' ') 
+        sandbox = Shikashi::Sandbox.new
+        priv = Shikashi::Privileges.new
+        priv.allow_method :"+"
+        eval_output = sandbox.run(tweet.text.split(' ')[1..-1].join(' '), priv) 
         @rest_client.update("@#{tweet.user.screen_name} #{eval_output}",
                            :in_reply_to_status => tweet)
       rescue Exception => exc
