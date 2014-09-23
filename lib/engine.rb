@@ -33,10 +33,9 @@ module RubyREPL
         @rest_client.update("@#{tweet.user.screen_name} #{eval_output}",
                            :in_reply_to_status => tweet)
       rescue Exception => exc
-        @rest_client.update("@#{tweet.user.screen_name} \
-                            I'm sorry, I don't understand your input!",
-                           :in_reply_to_status => tweet)
-
+        @rest_client.update(
+          "@#{tweet.user.screen_name} I'm sorry, I don't understand your input!", 
+          :in_reply_to_status => tweet)
         p exc
       end
     end
