@@ -26,7 +26,9 @@ module RubyREPL
         sandbox = Shikashi::Sandbox.new
         priv = Shikashi::Privileges.new
         priv.allow_method :"+"
+        priv.allow_method :"*"
         eval_output = sandbox.run(tweet.text.split(' ')[1..-1].join(' '), priv) 
+        # eval_output = eval tweet.text.split(' ')[1..-1].join(' ')
         @rest_client.update("@#{tweet.user.screen_name} #{eval_output}",
                            :in_reply_to_status => tweet)
       rescue Exception => exc
