@@ -42,7 +42,11 @@ module RubyREPL
     def evaluate_tweet(tweet)
       begin
         eval_output = Timeout::timeout(2) { sandboxed_eval(get_code_from_tweet(tweet)) }
-        reply_to_tweet(tweet, eval_output)
+        if is_valid_tweet_length(eval_output + tweet.user.screen_name)
+          reply_to_tweet(tweet, eval_output)
+        else
+          reply_to_tweet(tweet, "Result is too long for a tweet! // identifier: #{tweet.id}")
+        end
       rescue Exception => exc
         $logger.error "#{exc}: #{tweet.text}"
         reply_to_tweet(tweet, "I'm sorry, I don't understand your input! // identifier: #{tweet.id}")
@@ -59,6 +63,10 @@ module RubyREPL
     end
 
     # utility
+
+    def is_valid_tweet_length(str)
+      str.length <= 140
+    end
 
     def get_code_from_tweet(tweet)
       tweet.text.split(' ')[1..-1].join(' ')
