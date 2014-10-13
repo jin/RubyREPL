@@ -7,8 +7,7 @@ module RubyREPL
       attr_accessor :config 
 
       def config
-        @config = YAML::load_file "../user_config.yml" unless @config
-        @config
+        @config ||= YAML::load_file "../user_config.yml"
       end
 
     end
