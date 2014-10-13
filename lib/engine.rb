@@ -1,5 +1,6 @@
 require 'twitter'
 require 'shikashi'
+require 'timeout'
 require_relative 'config'
 
 module RubyREPL
@@ -40,11 +41,11 @@ module RubyREPL
 
     def evaluate_tweet(tweet)
       begin
-        eval_output = sandboxed_eval(get_code_from_tweet(tweet))
+        eval_output = Timeout::timeout(2) { sandboxed_eval(get_code_from_tweet(tweet)) }
         reply_to_tweet(tweet, eval_output)
       rescue Exception => exc
         $logger.error "#{exc}: #{tweet.text}"
-        reply_to_tweet(tweet, "@#{tweet.user.screen_name} I'm sorry, I don't understand your input!")
+        reply_to_tweet(tweet, "I'm sorry, I don't understand your input! // identifier: #{tweet.id}")
       end
     end
 
@@ -53,7 +54,7 @@ module RubyREPL
     end
 
     def reply_to_tweet(source, content)
-      $logger.info "Reply to #{source.user.screen_name}: #{content}"
+      $logger.info "Reply to #{source.user.screen_name} - #{source.text} - #{content}"
       @rest_client.update("@#{source.user.screen_name} #{content}", :in_reply_to_status => source)
     end
 
