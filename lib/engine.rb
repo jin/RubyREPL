@@ -14,23 +14,32 @@ module RubyREPL
                       "access_token",
                       "access_token_secret"]
 
+    METHODS = [:"+", :"-", :"*", :"/", :"%", :"**"]
+
     def initialize
       user_config = Configuration.config
       @stream_client = Twitter::Streaming::Client.new { |config| apply_config(config, user_config) }
       @rest_client   = Twitter::REST::Client.new      { |config| apply_config(config, user_config) }
 
-      init_sandbox_and_privileges
+      init_sandbox
+      init_privileges
+      whitelist_methods METHODS
     end
 
     def apply_config(client_config, user_config)
       CONFIG_STRINGS.each { |str| client_config.send("#{str}=", user_config[str]) }
     end
 
-    def init_sandbox_and_privileges
-      @sandbox = Shikashi::Sandbox.new
-      @priv = Shikashi::Privileges.new
+    def init_sandbox
+      @sandbox ||= Shikashi::Sandbox.new
+    end
 
-      [:"+", :"-", :"*", :"/", :"%", :"**"].each { |m| priv.allow_method m }
+    def init_privileges
+      @priv ||= Shikashi::Privileges.new
+    end
+
+    def whitelist_methods(methods)
+      methods.each { |m| @priv.allow_method m }
     end
 
     def start_stream
@@ -42,7 +51,7 @@ module RubyREPL
     def evaluate_tweet(tweet)
       begin
         eval_output = Timeout::timeout(2) { sandboxed_eval(get_code_from_tweet(tweet)) }
-        if is_valid_tweet_length(eval_output + tweet.user.screen_name)
+        if is_valid_tweet_length("#{eval_output}#{tweet.user.screen_name}")
           reply_to_tweet(tweet, eval_output)
         else
           reply_to_tweet(tweet, "Result is too long for a tweet! // identifier: #{tweet.id}")
@@ -71,7 +80,5 @@ module RubyREPL
     def get_code_from_tweet(tweet)
       tweet.text.split(' ')[1..-1].join(' ')
     end
-
   end
 end
-
