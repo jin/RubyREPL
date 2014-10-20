@@ -9,12 +9,9 @@ module RubyREPL
     attr_reader :stream_client, :rest_client
     attr_reader :sandbox, :priv
 
-    CONFIG_STRINGS = ["consumer_key",
-                      "consumer_secret",
-                      "access_token",
-                      "access_token_secret"]
+    CONFIG_STRINGS = %w(consumer_key consumer_secret access_token access_token_secret)
 
-    METHODS = [:"+", :"-", :"*", :"/", :"%", :"**"]
+    METHODS = [:'+', :'-', :'*', :'/', :'%', :'**']
 
     def initialize
       user_config = Configuration.config
@@ -44,7 +41,7 @@ module RubyREPL
 
     def start_stream
       @stream_client.user(:with => "user") do |object|
-        evaluate_tweet(object) if object.is_a?(Twitter::Tweet) && object.user.screen_name != "RubyREPL"
+        evaluate_tweet(object) if object.is_a?(Twitter::Tweet) && object.user.screen_name != 'RubyREPL'
       end
     end
 
